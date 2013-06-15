@@ -198,7 +198,9 @@ class EmbeddedListField(BuildRelatedMixin, fields.ToManyField):
 
             m2m_bundle = tastypie_bundle.Bundle(obj=m2m, request=bundle.request)
             self.m2m_resources.append(m2m_resource)
-            m2m_dehydrated.append(self.dehydrate_related(m2m_bundle, m2m_resource, for_list=for_list))
+            print 'forlist = '
+            print for_list
+            m2m_dehydrated.append(self.dehydrate_related(m2m_bundle, m2m_resource))#bob, for_list=for_list))
 
         return m2m_dehydrated
 
@@ -276,7 +278,7 @@ class ReferencedListField(TastypieMongoengineMixin, fields.ToManyField):
             m2m_resource = self.get_related_resource(m2m)
             m2m_bundle = tastypie_bundle.Bundle(obj=m2m, request=bundle.request)
             self.m2m_resources.append(m2m_resource)
-            m2m_dehydrated.append(self.dehydrate_related(m2m_bundle, m2m_resource, for_list=for_list))
+            m2m_dehydrated.append(self.dehydrate_related(m2m_bundle, m2m_resource))#bob, for_list=for_list))
 
         return m2m_dehydrated
 

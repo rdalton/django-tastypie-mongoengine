@@ -55,7 +55,6 @@ class ListQuerySet(datastructures.SortedDict):
 
     def filter(self, **kwargs):
         result = self
-
         # pk optimization
         if 'pk' in kwargs:
             pk = unicode(self._process_filter_value(kwargs.pop('pk')))
@@ -66,14 +65,32 @@ class ListQuerySet(datastructures.SortedDict):
                 result = ListQuerySet()
 
         for field, value in kwargs.iteritems():
-            value = self._process_filter_value(value)
-            if constants.LOOKUP_SEP in field:
-                raise tastypie_exceptions.InvalidFilterError("Unsupported filter: (%s, %s)" % (field, value))
+            # bob: support time filtering
+            if field == 'time__gt':
+                result = ListQuerySet([(unicode(obj.pk), obj) for obj in result.itervalues() if getattr(obj, 'time') > value])
+            elif field == 'time__gte':
+                result = ListQuerySet([(unicode(obj.pk), obj) for obj in result.itervalues() if getattr(obj, 'time') >= value])
+            elif field == 'time__lt':
+                result = ListQuerySet([(unicode(obj.pk), obj) for obj in result.itervalues() if getattr(obj, 'time') < value])
+            elif field == 'time__lte':
+                result = ListQuerySet([(unicode(obj.pk), obj) for obj in result.itervalues() if getattr(obj, 'time') <= value])
+            else:
+                if constants.LOOKUP_SEP in field:
+                    raise tastypie_exceptions.InvalidFilterError("Unsupported filter: (%s, %s)" % (field, value))
+                try:
+                    result = ListQuerySet([(unicode(obj.pk), obj) for obj in result.itervalues() if getattr(obj, field) == value])
+                except AttributeError, e:
+                    raise tastypie_exceptions.InvalidFilterError(e)
 
-            try:
-                result = ListQuerySet([(unicode(obj.pk), obj) for obj in result.itervalues() if getattr(obj, field) == value])
-            except AttributeError, e:
-                raise tastypie_exceptions.InvalidFilterError(e)
+        # for field, value in kwargs.iteritems():
+        #     value = self._process_filter_value(value)
+        #     if constants.LOOKUP_SEP in field:
+        #         raise tastypie_exceptions.InvalidFilterError("Unsupported filter: (%s, %s)" % (field, value))
+
+        #     try:
+        #         result = ListQuerySet([(unicode(obj.pk), obj) for obj in result.itervalues() if getattr(obj, field) == value])
+        #     except AttributeError, e:
+        #         raise tastypie_exceptions.InvalidFilterError(e)
 
         return result
 
@@ -466,7 +483,7 @@ class MongoEngineResource(resources.ModelResource):
                         value = None
                 else:
                     value = field_object.hydrate(bundle)
-                if value is None:
+                if value is None and not field_object.blank:
                     setattr(bundle.obj, field_object.attribute, None)
 
             if field_object.blank or field_object.null:
