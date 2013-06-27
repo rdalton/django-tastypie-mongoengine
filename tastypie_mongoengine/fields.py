@@ -198,8 +198,6 @@ class EmbeddedListField(BuildRelatedMixin, fields.ToManyField):
 
             m2m_bundle = tastypie_bundle.Bundle(obj=m2m, request=bundle.request)
             self.m2m_resources.append(m2m_resource)
-            print 'forlist = '
-            print for_list
             m2m_dehydrated.append(self.dehydrate_related(m2m_bundle, m2m_resource))#bob, for_list=for_list))
 
         return m2m_dehydrated

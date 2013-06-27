@@ -66,14 +66,14 @@ class ListQuerySet(datastructures.SortedDict):
 
         for field, value in kwargs.iteritems():
             # bob: support time filtering
-            if field == 'time__gt':
-                result = ListQuerySet([(unicode(obj.pk), obj) for obj in result.itervalues() if getattr(obj, 'time') > value])
-            elif field == 'time__gte':
-                result = ListQuerySet([(unicode(obj.pk), obj) for obj in result.itervalues() if getattr(obj, 'time') >= value])
-            elif field == 'time__lt':
-                result = ListQuerySet([(unicode(obj.pk), obj) for obj in result.itervalues() if getattr(obj, 'time') < value])
-            elif field == 'time__lte':
-                result = ListQuerySet([(unicode(obj.pk), obj) for obj in result.itervalues() if getattr(obj, 'time') <= value])
+            if field == 'created_time__gt':
+                result = ListQuerySet([(unicode(obj.pk), obj) for obj in result.itervalues() if getattr(obj, 'created_time') > value])
+            elif field == 'created_time__gte':
+                result = ListQuerySet([(unicode(obj.pk), obj) for obj in result.itervalues() if getattr(obj, 'created_time') >= value])
+            elif field == 'created_time__lt':
+                result = ListQuerySet([(unicode(obj.pk), obj) for obj in result.itervalues() if getattr(obj, 'created_time') < value])
+            elif field == 'created_time__lte':
+                result = ListQuerySet([(unicode(obj.pk), obj) for obj in result.itervalues() if getattr(obj, 'created_time') <= value])
             else:
                 if constants.LOOKUP_SEP in field:
                     raise tastypie_exceptions.InvalidFilterError("Unsupported filter: (%s, %s)" % (field, value))
