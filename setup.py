@@ -10,7 +10,7 @@ try:
 except ImportError:
     pass
 
-VERSION = '0.4'
+VERSION = '0.4.5'
 
 if __name__ == '__main__':
     setup(
@@ -18,9 +18,9 @@ if __name__ == '__main__':
         version = VERSION,
         description = "MongoEngine support for django-tastypie.",
         long_description = open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
-        author = 'Mitar',
-        author_email = 'mitar.django@tnode.com',
-        url = 'https://github.com/mitar/django-tastypie-mongoengine',
+        author = 'wlan slovenija',
+        author_email = 'open@wlan-si.net',
+        url = 'https://github.com/wlanslovenija/django-tastypie-mongoengine',
         keywords = "REST RESTful tastypie mongo mongodb mongoengine django",
         license = 'AGPLv3',
         packages = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests')),
@@ -36,14 +36,26 @@ if __name__ == '__main__':
         zip_safe = False,
         install_requires = (
             'Django>=1.4',
-            'django-tastypie>=0.9.12',
-            'mongoengine>=0.6.11',
+            'django-tastypie>=0.9.12,<=0.10.0',
+            'mongoengine>=0.8.1,<0.8.2',
+            'python-dateutil>=2.1',
+            'lxml',
+            'defusedxml',
+            'PyYAML',
+            'biplist',
+            'python-mimeparse>=0.1.4',
         ),
         test_suite = 'tests.runtests.runtests',
         tests_require = (
             'Django>=1.4',
-            'django-tastypie>=0.9.12',
-            'mongoengine>=0.6.11',
+            'django-tastypie>=0.9.12,<=0.10.0',
+            'mongoengine>=0.8.1,<0.8.2',
+            'python-dateutil>=2.1',
+            'lxml',
+            'defusedxml',
+            'PyYAML',
+            'biplist',
+            'python-mimeparse>=0.1.4',
             'nose',
         ),
     )

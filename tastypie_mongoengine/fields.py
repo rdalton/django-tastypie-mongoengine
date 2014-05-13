@@ -1,11 +1,16 @@
+import tastypie
 from tastypie import bundle as tastypie_bundle, exceptions, fields
 
+
 def link_property(property_name):
-    def get(self):
+    def getter(self):
         return getattr(self, property_name)
-    def set(self, value):
+
+    def setter(self, value):
         setattr(self, property_name, value)
-    return property(get, set)
+
+    return property(getter, setter)
+
 
 class ObjectId(fields.ApiField):
     """
@@ -15,6 +20,7 @@ class ObjectId(fields.ApiField):
     dehydrated_type = 'objectid'
     help_text = "ID field"
 
+
 class ApiNameMixin(object):
     def get_api_name(self):
         if getattr(self, 'api_name', None) is not None:
@@ -22,6 +28,7 @@ class ApiNameMixin(object):
         if getattr(self, '_resource', None) and self._resource._meta.api_name is not None:
             return self._resource._meta.api_name
         return None
+
 
 class GetRelatedMixin(object):
     def get_related_resource(self, related_instance):
@@ -33,8 +40,10 @@ class GetRelatedMixin(object):
                 related_resource._meta.resource_name = resource._meta.resource_name
         return related_resource
 
+
 class TastypieMongoengineMixin(ApiNameMixin, GetRelatedMixin):
     pass
+
 
 class BuildRelatedMixin(TastypieMongoengineMixin):
     def build_related_resource(self, value, **kwargs):
@@ -50,6 +59,7 @@ class BuildRelatedMixin(TastypieMongoengineMixin):
             return value
         else:
             raise exceptions.ApiFieldError("The '%s' field was not given a dictionary-alike data: %s." % (self.instance_name, value))
+
 
 class ReferenceField(TastypieMongoengineMixin, fields.ToOneField):
     """
@@ -80,6 +90,7 @@ class ReferenceField(TastypieMongoengineMixin, fields.ToOneField):
                 'resource_name': resource._meta.resource_name,
             }),
         }
+
 
 class EmbeddedDocumentField(BuildRelatedMixin, fields.ToOneField):
     """
@@ -126,6 +137,7 @@ class EmbeddedDocumentField(BuildRelatedMixin, fields.ToOneField):
             return bundle
         return bundle.obj
 
+
 class EmbeddedListField(BuildRelatedMixin, fields.ToManyField):
     """
     Represents a list of embedded objects. It must be used in conjunction
@@ -155,6 +167,7 @@ class EmbeddedListField(BuildRelatedMixin, fields.ToManyField):
             'embedded': {
                 'fields': self.to_class(self.get_api_name()).build_schema()['fields'],
             },
+            'related_type': 'to_many',
         }
 
         type_map = getattr(self.to_class(self.get_api_name())._meta, 'polymorphic', {})
@@ -198,7 +211,10 @@ class EmbeddedListField(BuildRelatedMixin, fields.ToManyField):
 
             m2m_bundle = tastypie_bundle.Bundle(obj=m2m, request=bundle.request)
             self.m2m_resources.append(m2m_resource)
-            m2m_dehydrated.append(self.dehydrate_related(m2m_bundle, m2m_resource))#bob, for_list=for_list))
+            if tastypie.__version__ >= (0, 9, 15):
+                m2m_dehydrated.append(self.dehydrate_related(m2m_bundle, m2m_resource, for_list=for_list))
+            else:
+                m2m_dehydrated.append(self.dehydrate_related(m2m_bundle, m2m_resource))
 
         return m2m_dehydrated
 
@@ -215,7 +231,7 @@ class EmbeddedListField(BuildRelatedMixin, fields.ToManyField):
             self._to_class_with_listresource = type(base.__name__, (base, resources.MongoEngineListResource), {
                 '__module__': base.__module__,
                 '_parent': self._resource,
-                'attribute': self.instance_name,
+                'attribute': self.attribute or self.instance_name,
             })
         return self._to_class_with_listresource
 
@@ -247,6 +263,7 @@ class ReferencedListField(TastypieMongoengineMixin, fields.ToManyField):
                 'api_name': self.get_api_name(),
                 'resource_name': resource._meta.resource_name,
             }),
+            'related_type': 'to_many',
         }
 
     def dehydrate(self, bundle, for_list=True):
@@ -276,7 +293,10 @@ class ReferencedListField(TastypieMongoengineMixin, fields.ToManyField):
             m2m_resource = self.get_related_resource(m2m)
             m2m_bundle = tastypie_bundle.Bundle(obj=m2m, request=bundle.request)
             self.m2m_resources.append(m2m_resource)
-            m2m_dehydrated.append(self.dehydrate_related(m2m_bundle, m2m_resource))#bob, for_list=for_list))
+            if tastypie.__version__ >= (0, 9, 15):
+                m2m_dehydrated.append(self.dehydrate_related(m2m_bundle, m2m_resource, for_list=for_list))
+            else:
+                m2m_dehydrated.append(self.dehydrate_related(m2m_bundle, m2m_resource))
 
         return m2m_dehydrated
 

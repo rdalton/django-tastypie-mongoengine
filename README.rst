@@ -9,7 +9,7 @@ Requirements
 * Python_ 2.6+
 * Django_ 1.4+
 * django-tastypie_ 0.9.12+
-* MongoEngine_ 0.6.11+
+* MongoEngine_ 0.8.0+
 
 .. _Python: https://python.org
 .. _Django: http://djangoproject.com
@@ -20,4 +20,4 @@ How to use?
 -----------
 
 * See documentation: http://django-tastypie-mongoengine.readthedocs.org
-* See usage in tests: http://github.com/mitar/django-tastypie-mongoengine/tree/master/tests
+* See usage in tests: http://github.com/wlanslovenija/django-tastypie-mongoengine/tree/master/tests

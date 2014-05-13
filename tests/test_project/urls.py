@@ -30,7 +30,10 @@ v1_api.register(resources.ExporterResource())
 v1_api.register(resources.PipeResource())
 v1_api.register(resources.BlankableParentResource())
 v1_api.register(resources.ReadonlyParentResource())
+v1_api.register(resources.DatetimeFieldTestResource())
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
+
     url(r'^api/', include(v1_api.urls)),
 )

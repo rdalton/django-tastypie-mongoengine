@@ -14,6 +14,7 @@ from tastypie_mongoengine import resources as tastypie_mongoengine_resources, te
 from test_project.test_app import documents
 from test_project.test_app.api import resources
 
+
 # TODO: Test set operations
 # TODO: Test bulk operations
 # TODO: Test ordering, filtering
@@ -73,7 +74,7 @@ class BasicTest(test_runner.MongoEngineTestCase):
         response = self.c.post(self.resourceListURI('person'), '{"name": {}}', content_type='application/json')
         self.assertContains(response, 'only accepts string values', status_code=400)
 
-        response = self.c.post(self.resourceListURI('person'), '{"name": "Person 2", "optional": null}', content_type='application/json')
+        response = self.c.post(self.resourceListURI('person'), '{"name": "Person 2 null", "optional": null}', content_type='application/json')
         self.assertEqual(response.status_code, 201)
 
         response = self.c.post(self.resourceListURI('person'), '{"name": "Person 2", "optional": "Optional"}', content_type='application/json')
@@ -92,7 +93,7 @@ class BasicTest(test_runner.MongoEngineTestCase):
         response = self.c.post(self.resourceListURI('person'), '{"name": "Person 3", "additional": "Additional"}', content_type='application/json')
         self.assertEqual(response.status_code, 201)
 
-        # Referenced resources can be matched through fields if they match uniquely
+        # Referenced resources can be matched through fields if an unique field is used
         response = self.c.post(self.resourceListURI('customer'), '{"person": {"name": "Person 1"}}', content_type='application/json')
         self.assertEqual(response.status_code, 201)
 
@@ -1123,7 +1124,7 @@ class BasicTest(test_runner.MongoEngineTestCase):
         self.assertIn(company_uri, response['objects'][0]['contacts'])
 
         # Test fallback
-        # Because the resource is not registered, it should be added on the mongoengine layer
+        # Because the resource is not registered, it should be added on the MongoEngine layer
         unreg_company_resource = resources.UnregisteredCompanyResource()
         unreg_company_resource._reset_collection()
         unreg_company = unreg_company_resource._meta.object_class(corporate_name='Unreg company', phone='000-000000')
@@ -1519,6 +1520,9 @@ class BasicTest(test_runner.MongoEngineTestCase):
         self.assertEqual(response['embedded']['description'], None)
 
         response = self.c.patch(document_uri, '{"embedded": null}', content_type='application/json')
+
+        # MongoEngine 0.8.2 broke handling of None values on fields with defaults defined and the following does not fail
+        # https://github.com/MongoEngine/mongoengine/issues/381
         self.assertContains(response, 'Field is required', status_code=400)
 
     def test_readonly_embedded(self):
@@ -1533,3 +1537,35 @@ class BasicTest(test_runner.MongoEngineTestCase):
 
         self.assertEqual(response['tzdt']['dt'], '2012-12-12T12:12:12')
         self.assertEqual(response['tzdt']['tz'], 'UTC')
+
+        response = self.c.patch(document_uri, '{"tzdt": {"dt": "2012-12-12T12:00:00"}}', content_type='application/json')
+        # Tastypie ignores readonly field, should not do anything, but succeed
+        self.assertEqual(response.status_code, 202)
+
+        response = self.c.get(document_uri)
+        self.assertEqual(response.status_code, 200)
+        response = json.loads(response.content)
+
+        self.assertEqual(response['tzdt']['dt'], '2012-12-12T12:12:12')
+        self.assertEqual(response['tzdt']['tz'], 'UTC')
+
+    def test_datetime(self):
+        response = self.c.post(self.resourceListURI('datetimefieldtest'), '{"datetime": "2012-12-12T12:12:12"}', content_type='application/json')
+        self.assertEqual(response.status_code, 201)
+
+        datetimefieldtest_uri = response['location']
+
+        response = self.c.get(datetimefieldtest_uri)
+        self.assertEqual(response.status_code, 200)
+        response = json.loads(response.content)
+
+        self.assertEqual(response['datetime'], '2012-12-12T12:12:12')
+
+        response = self.c.patch(datetimefieldtest_uri, '{"datetime": "2012-12-12T12:00:00"}', content_type='application/json')
+        self.assertEqual(response.status_code, 202)
+
+        response = self.c.get(datetimefieldtest_uri)
+        self.assertEqual(response.status_code, 200)
+        response = json.loads(response.content)
+
+        self.assertEqual(response['datetime'], '2012-12-12T12:00:00')
